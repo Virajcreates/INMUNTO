@@ -32,3 +32,33 @@ We use a **Recursive Propagation** (Depth-First) approach.
 - We re-evaluate `Task B`.
 - If `Task B` changes, we find all `Task C`s that depend on `B`, and so on.
 - Since we prevent cycles at creation time, this propagation is guaranteed to terminate (DAG).
+
+## Frontend Architecture
+
+### React + Vite + Tailwind
+- **Vite**: Chosen for superior build speed and modern ES module support compared to CRA.
+- **Tailwind CSS**: Used to quickly prototype a clean, responsive UI without writing custom CSS files.
+- **Component Split**:
+  - `TaskForm`: Handles creation logic.
+  - `TaskList`: Handles list display, filtering, and state management via API calls.
+  - `DependencyGraph`: Isolated visualization logic.
+
+### Custom SVG Visualization
+Instead of using a library like `react-flow` or `d3` (which would be easier but larger dependencies), I implemented a **Custom SVG Dependency Graph**.
+- **Algorithm**: A simple level-based layout.
+  1. Determine "depth" (level) of each node based on dependencies (Topological layering).
+  2. Assign X coordinates to center nodes within each level.
+  3. Draw SVG `<rect>` for nodes and `<line>` with markers for edges.
+- **Interactivity**: Added custom `onMouseDown`/`onMouseMove` handlers to allow dragging nodes within the SVG coordinate space.
+
+## Bonus Features Implementation
+
+### Total Estimated Time (Critical Path)
+The goal was to show the total time to complete a task *including* its dependencies.
+- **Logic**: `Total(Task) = Own_Time + Max(Total(Dependency_1), Total(Dependency_2), ...)`
+- **Implementation**: Implemented recursively in `TaskSerializer`.
+- **Reasoning**: This represents the "Critical Path" time—assuming parallel execution of non-dependent tasks, the completion time is determined by the longest chain of dependencies.
+
+### Prioritization
+- Implemented as a simple integer field (1-5).
+- **5 = Critical**: Chosen to follow standard severity levels often used in bug tracking (Blocker/Critical > High > Medium > Low).
