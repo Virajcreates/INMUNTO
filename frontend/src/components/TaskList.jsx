@@ -12,6 +12,8 @@ const TaskList = ({ tasks, onUpdate, onDelete }) => {
     const [addingDep, setAddingDep] = useState(null); // Task ID we are adding dependency TO
     const [selectedDepId, setSelectedDepId] = useState('');
     const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     const handleStatusChange = async (taskId, newStatus) => {
         try {
@@ -65,17 +67,60 @@ const TaskList = ({ tasks, onUpdate, onDelete }) => {
         }
     };
 
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
+
+    const getPriorityColor = (p) => {
+        if (p >= 5) return 'text-red-600 font-bold';
+        if (p === 4) return 'text-orange-500 font-semibold';
+        if (p === 3) return 'text-yellow-600';
+        return 'text-gray-500';
+    };
+
     return (
         <div className="space-y-4">
-            {tasks.map(task => (
+            {/* Search and Filter */}
+            <div className="flex space-x-2 mb-4">
+                <input
+                    type="text"
+                    placeholder="Search tasks..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 p-2 border rounded text-sm"
+                />
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="p-2 border rounded text-sm"
+                >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+
+            {filteredTasks.map(task => (
                 <div key={task.id} className={`bg-white p-4 rounded-lg shadow border-l-4 ${task.status === 'completed' ? 'border-green-500' :
                     task.status === 'blocked' ? 'border-red-500' :
                         task.status === 'in_progress' ? 'border-blue-500' : 'border-gray-300'
                     }`}>
                     <div className="flex justify-between items-start">
                         <div>
-                            <h3 className="text-lg font-semibold">{task.title}</h3>
+                            <div className="flex items-center space-x-2">
+                                <h3 className="text-lg font-semibold">{task.title}</h3>
+                                <span className={`text-xs ${getPriorityColor(task.priority)}`}>
+                                    [P{task.priority}]
+                                </span>
+                            </div>
                             <p className="text-gray-600 text-sm mt-1">{task.description}</p>
+                            <p className="text-gray-500 text-xs mt-1">
+                                Est: {task.estimated_time}h | Total: {task.total_estimated_time}h
+                            </p>
                             <div className="mt-2 flex items-center space-x-2">
                                 <span className={`px-2 py-1 text-xs rounded-full font-medium ${STATUS_COLORS[task.status]}`}>
                                     {task.status.replace('_', ' ').toUpperCase()}
@@ -157,7 +202,7 @@ const TaskList = ({ tasks, onUpdate, onDelete }) => {
                     )}
                 </div>
             ))}
-            {tasks.length === 0 && <p className="text-center text-gray-500">No tasks found. Create one above!</p>}
+            {filteredTasks.length === 0 && <p className="text-center text-gray-500">No tasks found.</p>}
         </div>
     );
 };

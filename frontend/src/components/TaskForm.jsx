@@ -4,6 +4,8 @@ import api from '../services/api';
 const TaskForm = ({ onTaskCreated }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [priority, setPriority] = useState(3);
+    const [estimatedTime, setEstimatedTime] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -14,9 +16,16 @@ const TaskForm = ({ onTaskCreated }) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.post('/tasks/', { title, description });
+            const response = await api.post('/tasks/', {
+                title,
+                description,
+                priority: parseInt(priority),
+                estimated_time: parseInt(estimatedTime)
+            });
             setTitle('');
             setDescription('');
+            setPriority(3);
+            setEstimatedTime(0);
             if (onTaskCreated) onTaskCreated(response.data);
         } catch (err) {
             setError('Failed to create task');
@@ -51,6 +60,32 @@ const TaskForm = ({ onTaskCreated }) => {
                         placeholder="Task Description"
                         rows="3"
                     />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Priority (1-5)</label>
+                        <select
+                            value={priority}
+                            onChange={(e) => setPriority(e.target.value)}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                        >
+                            <option value="1">1 - Low</option>
+                            <option value="2">2 - Medium Low</option>
+                            <option value="3">3 - Medium</option>
+                            <option value="4">4 - High</option>
+                            <option value="5">5 - Critical</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Est. Time (Hours)</label>
+                        <input
+                            type="number"
+                            min="0"
+                            value={estimatedTime}
+                            onChange={(e) => setEstimatedTime(e.target.value)}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
+                        />
+                    </div>
                 </div>
                 <button
                     type="submit"
